@@ -1,5 +1,12 @@
 package com.sweater.sweater.entities;
 
-public enum RolesEnum {
+import org.springframework.security.core.GrantedAuthority;
+
+public enum RolesEnum implements GrantedAuthority {
     USER;
+
+    @Override
+    public String getAuthority() {
+        return this.name();
+    }
 }

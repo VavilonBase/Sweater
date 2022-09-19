@@ -27,7 +27,12 @@
 
 <div>Список сообщений:</div>
 {{#messages}}
-    <div>{{ id }} {{ text }} {{ tag }}</div>
+    <div>
+        <b>{{id}}</b>
+        <span>{{text}}</span>
+        <i>{{tag}}</i>
+        <strong>{{authorName}}</strong>
+    </div>
 {{/messages}}
 </body>
 </html>
