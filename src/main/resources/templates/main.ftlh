@@ -3,6 +3,7 @@
 
 <@c.page "Main Page">
     <@lf.logout/>
+    <a href="/user">User List</a>
     <form method="POST">
         <input type="text" name="text" placeholder="Введите текст"/>
         <input type="text" name="tag" placeholder="Введите тег"/>
