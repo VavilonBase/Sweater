@@ -1,5 +1,5 @@
 <#macro login path isRegistration>
-    <form action="${path}" method="post">
+    <form action="${path}" method="post" id="login-form">
         <div class="form-group mb-3">
             <label for="username" class="form-label">Username</label>
             <input type="text" name="username" class="form-control ${(usernameError??)?string('is-invalid', '')}"
@@ -41,7 +41,20 @@
                     </div>
                 </#if>
             </div>
+            <div class="form-group mb-3">
+                <div class="g-recaptcha" data-sitekey="6LfbYEoiAAAAALRaxJr9eBoNfuEXDJc9sa3RRpkU"></div>
+                <#if captchaError??>
+                    <div class="alert alert-danger">
+                        ${captchaError}
+                    </div>
+                </#if>
+            </div>
 
+            <script>
+                function onSubmit(token) {
+                    document.getElementById("login-form").submit();
+                }
+            </script>
         </#if>
         <input type="hidden" name="_csrf" value="${_csrf.token}"/>
         <button type="submit" class="btn btn-primary">
