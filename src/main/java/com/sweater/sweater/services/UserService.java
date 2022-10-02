@@ -3,15 +3,14 @@ package com.sweater.sweater.services;
 import com.sweater.sweater.entities.RolesEnum;
 import com.sweater.sweater.entities.User;
 import com.sweater.sweater.repositories.UserRepo;
-import freemarker.template.utility.StringUtil;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
-import java.util.Collections;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -19,15 +18,23 @@ public class UserService implements UserDetailsService {
     private final UserRepo userRepo;
 
     private final MailSender mailSender;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepo userRepo, MailSender mailSender) {
+    public UserService(UserRepo userRepo, MailSender mailSender, PasswordEncoder passwordEncoder) {
         this.userRepo = userRepo;
         this.mailSender = mailSender;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepo.findByUsername(username);
+        User user = userRepo.findByUsername(username);
+
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found!");
+        }
+
+        return user;
     }
 
     public boolean addUser(User user) {
@@ -40,23 +47,28 @@ public class UserService implements UserDetailsService {
         user.setActive(false);
         user.setRoles(Collections.singleton(RolesEnum.USER));
         user.setActivationCode(UUID.randomUUID().toString());
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        if (!StringUtils.isEmpty(user.getEmail())) {
+        userRepo.save(user);
+
+        sendMessage(user);
+
+        return true;
+    }
+
+    private void sendMessage(User user) {
+        String email = user.getEmail();
+        if (email != null && !email.trim().isEmpty()) {
 
             String message = String.format(
                     "Hello, %s!\n" +
-                            "Welcome to Sweater. Please, visit next link: http://localhost:8080/activate/%s",
+                            "Welcome to Sweater. Please, visit next link: http://localhost:8090/activate/%s",
                     user.getUsername(),
                     user.getActivationCode()
             );
 
             mailSender.send(user.getEmail(), "Activation code", message);
         }
-
-
-        userRepo.save(user);
-
-        return true;
     }
 
     public boolean activateUser(String code) {
@@ -73,5 +85,50 @@ public class UserService implements UserDetailsService {
         userRepo.save(user);
 
         return true;
+    }
+
+    public List<User> findAll() {
+        return userRepo.findAll();
+    }
+
+    public void saveUser(User user, String username, Map<String, String> form) {
+        user.setUsername(username);
+
+        Set<String> roles = Arrays.stream(RolesEnum.values())
+                .map(RolesEnum::name)
+                .collect(Collectors.toSet());
+
+        user.getRoles().clear();
+
+        for (String key : form.keySet()) {
+            if (roles.contains(key)) {
+                user.getRoles().add(RolesEnum.valueOf(key));
+            }
+        }
+
+        userRepo.save(user);
+    }
+
+    public void updateProfile(User user, String password, String email) {
+        if (!password.isEmpty()) {
+            user.setPassword(password);
+        }
+
+        boolean isEmailChanged = (
+                email != null &&
+                        !email.trim().isEmpty() &&
+                        !email.equals(user.getEmail())
+        );
+
+        if (isEmailChanged) {
+            user.setEmail(email);
+            user.setActivationCode(UUID.randomUUID().toString());
+        }
+
+        userRepo.save(user);
+
+        if (isEmailChanged) {
+            sendMessage(user);
+        }
     }
 }

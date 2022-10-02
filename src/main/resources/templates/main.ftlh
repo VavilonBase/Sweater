@@ -15,14 +15,27 @@
         Add new message
     </a>
 
-    <div class="collapse" id="collapseAddMessageForm">
+    <div class="collapse <#if message??>show</#if>" id="collapseAddMessageForm">
         <div class="form-group mt-3">
             <form method="POST" enctype="multipart/form-data">
                 <div class="form-group mt-2">
-                    <input type="text" name="text" class="form-control" placeholder="Введите текст"/>
+                    <input type="text" name="text" class="form-control ${(textError??)?string('is-invalid', '')}"
+                           value="<#if message??>${message.text}</#if>" placeholder="Введите текст"/>
+                    <#if textError??>
+                        <div class="invalid-feedback">
+                            ${textError}
+                        </div>
+                    </#if>
                 </div>
+
                 <div class="form-group mt-2">
-                    <input type="text" name="tag" class="form-control" placeholder="Введите тег"/>
+                    <input type="text" name="tag" class="form-control ${(tagError??)?string('is-invalid', '')}"
+                           value="<#if message??>${message.tag}</#if>" placeholder="Введите тег"/>
+                    <#if tagError??>
+                        <div class="invalid-feedback">
+                            ${tagError}
+                        </div>
+                    </#if>
                 </div>
                 <div class="form-group mt-2">
                     <input type="file" name="file" class="form-control"/>
@@ -39,7 +52,7 @@
     <div class="row row-cols-1 row-cols-md-2 g-4">
         <#list messages as message>
             <div class="col">
-                <div class="card my-3"">
+                <div class="card my-3">
                     <#if message.filename??>
                         <img class="card-img-top" src="/img/${message.filename}">
                     </#if>
