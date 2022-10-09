@@ -116,7 +116,7 @@ public class UserService implements UserDetailsService {
 
     public void updateProfile(User user, String password, String email) {
         if (!password.isEmpty()) {
-            user.setPassword(password);
+            user.setPassword(passwordEncoder.encode(password));
         }
 
         boolean isEmailChanged = (
@@ -134,6 +134,20 @@ public class UserService implements UserDetailsService {
 
         if (isEmailChanged) {
             sendMessage(user);
+        }
+    }
+
+    public void subscribe(User currentUser, User user) {
+        if (!currentUser.equals(user)) {
+            user.getSubscribers().add(currentUser);
+            userRepo.save(user);
+        }
+    }
+
+    public void unsubscribe(User currentUser, User user) {
+        if (!currentUser.equals(user)) {
+            user.getSubscribers().remove(currentUser);
+            userRepo.save(user);
         }
     }
 }
