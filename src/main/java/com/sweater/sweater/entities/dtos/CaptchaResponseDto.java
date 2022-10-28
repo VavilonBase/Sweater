@@ -1,4 +1,4 @@
-package com.sweater.sweater.dtos;
+package com.sweater.sweater.entities.dtos;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

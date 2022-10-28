@@ -1,6 +1,6 @@
 package com.sweater.sweater.controllers;
 
-import com.sweater.sweater.dtos.CaptchaResponseDto;
+import com.sweater.sweater.entities.dtos.CaptchaResponseDto;
 import com.sweater.sweater.entities.User;
 import com.sweater.sweater.services.UserService;
 import org.springframework.beans.factory.annotation.Value;

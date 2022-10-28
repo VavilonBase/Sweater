@@ -6,7 +6,7 @@
     <div class="form-row">
         <div class="form-group col-md-6">
             <form method="GET" action="/main">
-                <input type="text" class="form-control" name="filter" value="${filter?ifExists}" placeholder="Введите фильтр(тег)">
+                <input type="text" class="form-control" name="filter" value="${filter?ifExists}" placeholder="Введите фильтр(тег)" />
                 <button type="submit" class="btn btn-primary mt-3">Search</button>
             </form>
         </div>

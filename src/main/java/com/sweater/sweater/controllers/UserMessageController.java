@@ -2,8 +2,14 @@ package com.sweater.sweater.controllers;
 
 import com.sweater.sweater.entities.Message;
 import com.sweater.sweater.entities.User;
+import com.sweater.sweater.entities.dtos.MessageDto;
 import com.sweater.sweater.repositories.MessageRepo;
 import com.sweater.sweater.services.FileService;
+import com.sweater.sweater.services.MessageService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,35 +18,39 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Set;
 
 @Controller
 @RequestMapping("/user-messages")
 public class UserMessageController {
     private final MessageRepo messageRepo;
     private final FileService fileService;
+    private final MessageService messageService;
 
-    public UserMessageController(MessageRepo messageRepo, FileService fileService) {
+    public UserMessageController(MessageRepo messageRepo, FileService fileService, MessageService messageService) {
         this.messageRepo = messageRepo;
         this.fileService = fileService;
+        this.messageService = messageService;
     }
 
-    @GetMapping("{user}")
+    @GetMapping("{author}")
     private String userMessages(
             @AuthenticationPrincipal User currentUser,
-            @PathVariable User user,
+            @PathVariable(name = "author") User author,
             @RequestParam(required = false) Message message,
-            Model model
+            Model model,
+            @RequestParam(required = false, defaultValue = "") String filter,
+            @PageableDefault(sort = { "id" }, direction = Sort.Direction.DESC) Pageable pageable
             ) {
-        Set<Message> messages = user.getMessages();
+        Page<MessageDto> page = messageService.getMessagePageForUser(pageable, currentUser, author);
 
-        model.addAttribute("userChannel", user);
-        model.addAttribute("subscriptionsCount", user.getSubscriptions().size());
-        model.addAttribute("subscribersCount", user.getSubscribers().size());
-        model.addAttribute("isSubscriber", user.getSubscribers().contains(currentUser));
-        model.addAttribute("messages", messages);
+        model.addAttribute("userChannel", author);
+        model.addAttribute("subscriptionsCount", author.getSubscriptions().size());
+        model.addAttribute("subscribersCount", author.getSubscribers().size());
+        model.addAttribute("isSubscriber", author.getSubscribers().contains(currentUser));
+        model.addAttribute("page", page);
         model.addAttribute("message", message);
-        model.addAttribute("isCurrentUser", currentUser.equals(user));
+        model.addAttribute("url", "/user-messages/" + author.getId());
+        model.addAttribute("isCurrentUser", currentUser.equals(author));
 
         return "userMessages";
     }
